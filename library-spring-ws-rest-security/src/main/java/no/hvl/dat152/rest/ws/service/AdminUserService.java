@@ -13,6 +13,9 @@ import no.hvl.dat152.rest.ws.model.User;
 import no.hvl.dat152.rest.ws.repository.RoleRepository;
 import no.hvl.dat152.rest.ws.repository.UserRepository;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * @author tdoy
  */
@@ -32,9 +35,28 @@ public class AdminUserService {
 		return user;
 	}
 	
-	// TODO public User deleteUserRole(Long id, String role)
+	public User deleteUserRole(Long id, String role) throws UserNotFoundException {
+		User user = findUser(id);
+		Role deleteRole = roleRepository.findByName(role);
+		user.removeRole(deleteRole);
+
+		user = userRepository.save(user);
+
+		return user;
+	}
 	
-	// TODO public User updateUserRole(Long id, String role)
+	public User updateUserRole(Long id, String role) throws UserNotFoundException {
+		User user = findUser(id);
+
+		Set<Role> updatedRole = new HashSet<>();
+		updatedRole.add(roleRepository.findByName(role));
+		user.setRoles(updatedRole);
+
+		user = userRepository.save(user);
+
+		return user;
+	}
+
 	
 	public User findUser(Long id) throws UserNotFoundException {
 		

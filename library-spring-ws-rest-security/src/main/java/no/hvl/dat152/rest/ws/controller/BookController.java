@@ -1,16 +1,18 @@
 /**
- * 
+ *
  */
 package no.hvl.dat152.rest.ws.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -35,7 +37,58 @@ import no.hvl.dat152.rest.ws.service.BookService;
 @RestController
 @RequestMapping("/elibrary/api/v1")
 public class BookController {
-	
-	// TODO authority annotation
+
+    @Autowired
+    private BookService bookService;
+
+    @GetMapping("/books")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Object> getAllBooks(){
+
+        List<Book> books = bookService.findAll();
+
+        if(books.isEmpty())
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+
+        return new ResponseEntity<>(books, HttpStatus.OK);
+    }
+
+    @GetMapping("/books/{isbn}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Object> getBook(@PathVariable("isbn") String isbn) throws BookNotFoundException{
+
+        Book book = bookService.findByISBN(isbn);
+
+        return new ResponseEntity<>(book, HttpStatus.OK);
+
+    }
+
+    @PostMapping("/books")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Book> createBook(@RequestBody Book book){
+
+        Book nbook = bookService.saveBook(book);
+
+        return new ResponseEntity<>(nbook, HttpStatus.CREATED);
+    }
+
+    @GetMapping(value = "/books/{isbn}/authors")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<?> getAuthorsOfBookByISBN(@PathVariable("isbn") String isbn) throws BookNotFoundException {
+        return new ResponseEntity<>(bookService.findAuthorsOfBookByISBN(isbn), HttpStatus.OK);
+    }
+
+    @PutMapping(value = "/books/{isbn}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Book> updateBookByISBN(@PathVariable("isbn") String isbn, @RequestBody Book book) {
+        return new ResponseEntity<>(bookService.updateBook(book, isbn), HttpStatus.OK);
+    }
+
+    @DeleteMapping(value = "/books/{isbn}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<?> deleteBookByISBN(@PathVariable("isbn") String isbn) throws BookNotFoundException {
+        bookService.deleteByISBN(isbn);
+        return new ResponseEntity<>(null, HttpStatus.OK);
+    }
 
 }
