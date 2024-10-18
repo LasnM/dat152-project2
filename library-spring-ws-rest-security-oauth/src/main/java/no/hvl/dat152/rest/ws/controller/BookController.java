@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package no.hvl.dat152.rest.ws.controller;
 
@@ -12,8 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,6 +37,51 @@ import no.hvl.dat152.rest.ws.service.BookService;
 @RequestMapping("/elibrary/api/v1")
 public class BookController {
 
-	// TODO authority annotation
+    @Autowired
+    private BookService bookService;
+
+    @GetMapping("/books")
+    public ResponseEntity<Object> getAllBooks(){
+
+        List<Book> books = bookService.findAll();
+
+        if(books.isEmpty())
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+
+        return new ResponseEntity<>(books, HttpStatus.OK);
+    }
+
+    @GetMapping("/books/{isbn}")
+    public ResponseEntity<Object> getBook(@PathVariable("isbn") String isbn) throws BookNotFoundException{
+
+        Book book = bookService.findByISBN(isbn);
+
+        return new ResponseEntity<>(book, HttpStatus.OK);
+
+    }
+
+    @PostMapping("/books")
+    public ResponseEntity<Book> createBook(@RequestBody Book book){
+
+        Book nbook = bookService.saveBook(book);
+
+        return new ResponseEntity<>(nbook, HttpStatus.CREATED);
+    }
+
+    @GetMapping(value = "/books/{isbn}/authors")
+    public ResponseEntity<?> getAuthorsOfBookByISBN(@PathVariable("isbn") String isbn) throws BookNotFoundException {
+        return new ResponseEntity<>(bookService.findAuthorsOfBookByISBN(isbn), HttpStatus.OK);
+    }
+
+    @PutMapping(value = "/books/{isbn}")
+    public ResponseEntity<Book> updateBookByISBN(@PathVariable("isbn") String isbn, @RequestBody Book book) {
+        return new ResponseEntity<>(bookService.updateBook(book, isbn), HttpStatus.OK);
+    }
+
+    @DeleteMapping(value = "/books/{isbn}")
+    public ResponseEntity<?> deleteBookByISBN(@PathVariable("isbn") String isbn) throws BookNotFoundException {
+        bookService.deleteByISBN(isbn);
+        return new ResponseEntity<>(null, HttpStatus.OK);
+    }
 
 }

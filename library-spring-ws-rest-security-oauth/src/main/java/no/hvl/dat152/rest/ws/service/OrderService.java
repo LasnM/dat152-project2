@@ -30,8 +30,13 @@ public class OrderService {
 
 	@Autowired
 	private OrderRepository orderRepository;
-	
-	// TODO copy your solutions from previous tasks!
+
+	public Order saveOrder(Order order) {
+
+		order = orderRepository.save(order);
+
+		return order;
+	}
 	
 	
 	public Order findOrder(Long id) throws OrderNotFoundException, UnauthorizedOrderActionException {
@@ -41,6 +46,24 @@ public class OrderService {
 				.orElseThrow(()-> new OrderNotFoundException("Order with id: "+id+" not found in the order list!"));
 		
 		return order;
+	}
+
+	public void deleteOrder(Long id) throws OrderNotFoundException {
+		Order order = orderRepository.findById(id)
+				.orElseThrow(() -> new OrderNotFoundException("Order with id: "+id+" not found in the order list!"));
+		orderRepository.delete(order);
+	}
+
+	public Page<Order> findAllOrders(Pageable pageable) {
+		return orderRepository.findAll(pageable);
+	}
+
+	public Page<Order> findByExpiryDate(LocalDate expiry, Pageable page) {
+		return orderRepository.findByExpiryBefore(expiry, page);
+	}
+
+	public Order updateOrder(Order order, Long id) {
+		return orderRepository.save(order);
 	}
 	
 	private boolean verifyPrincipalOfOrder(Long id) throws UnauthorizedOrderActionException {
